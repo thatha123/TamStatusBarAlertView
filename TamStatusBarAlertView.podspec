@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name          =  'TamStatusBarAlertView'
-    s.version       =  '2.0.0'
+    s.version       =  '0.0.1'
     s.summary       =  'A short description of TamStatusBarAlertView.'
     s.homepage      =  'https://github.com/thatha123/TamStatusBarAlertView'
     s.license       =  'MIT'
