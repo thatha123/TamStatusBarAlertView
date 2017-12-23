@@ -9,11 +9,19 @@
 #import "TamStatusBarAlertView.h"
 //#import "AppDelegate.h"
 
+// 屏幕的宽和高
+#define TamScreenWith [UIScreen mainScreen].bounds.size.width
+#define TamScreenHeight [UIScreen mainScreen].bounds.size.height
+//是否为IphoneX
+#define TamIS_iPhoneX (TamScreenWith == 375 && TamScreenHeight == 812)
+//状态栏高
+#define TamStatusBarHeight (20+(TamIS_iPhoneX ? 24 : 0))
+
 static const int CountTime = 4;
 
 @interface TamStatusBarAlertView()
 
-@property(nonatomic,strong)UILabel *alertLabel;
+@property(nonatomic,weak)UILabel *alertLabel;
 @property(nonatomic,strong)NSTimer *timer;
 @property(nonatomic,assign)int currentTime;
 @property(nonatomic,copy)TouchEventBlock touchEventBlock;
@@ -28,7 +36,7 @@ static TamStatusBarAlertView *_statusBaralertView;
     if (_statusBaralertView == nil) {
         _statusBaralertView = [[TamStatusBarAlertView alloc]init];
         _statusBaralertView.isCanTouch = YES;
-        _statusBaralertView.frame = CGRectMake(0, -20, [UIScreen mainScreen].bounds.size.width, 20);
+        _statusBaralertView.frame = CGRectMake(0, -TamStatusBarHeight, [UIScreen mainScreen].bounds.size.width, TamStatusBarHeight);NSLog(@"%d",TamStatusBarHeight);
         _statusBaralertView.windowLevel = UIWindowLevelStatusBar+1.0;
         [_statusBaralertView makeKeyAndVisible];
     }
@@ -86,7 +94,7 @@ static TamStatusBarAlertView *_statusBaralertView;
 {
     [UIView animateWithDuration:0.5 animations:^{
         CGRect rect = _statusBaralertView.frame;
-        rect.origin.y = -20;
+        rect.origin.y = -TamStatusBarHeight;
         _statusBaralertView.frame = rect;
     }completion:^(BOOL finished) {
         [_statusBaralertView.timer invalidate];
@@ -117,10 +125,8 @@ static TamStatusBarAlertView *_statusBaralertView;
     alertLabel.textAlignment = NSTextAlignmentCenter;
     alertLabel.textColor = [UIColor whiteColor];
     alertLabel.font = [UIFont systemFontOfSize:13];
+    alertLabel.frame = CGRectMake(0, TamIS_iPhoneX ? 24 : 0, TamScreenWith, TamIS_iPhoneX ? 24 : 20);
     [self addSubview:alertLabel];
-    alertLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[alertLabel]-0-|" options:0 metrics:nil views:@{@"alertLabel":alertLabel}]];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[alertLabel]-0-|" options:0 metrics:nil views:@{@"alertLabel":alertLabel}]];
 }
 
 @end
