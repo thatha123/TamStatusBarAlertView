@@ -22,7 +22,7 @@ static const int CountTime = 4;
 @interface TamStatusBarAlertView()
 
 @property(nonatomic,weak)UILabel *alertLabel;
-@property(nonatomic,strong)NSTimer *timer;
+@property(nonatomic,strong)dispatch_source_t timer;
 @property(nonatomic,assign)int currentTime;
 @property(nonatomic,copy)TouchEventBlock touchEventBlock;
 
@@ -43,20 +43,25 @@ static TamStatusBarAlertView *_statusBaralertView;
     return _statusBaralertView;
 }
 
--(NSTimer *)timer
+-(void)startTimer
 {
-    if (!_timer) {
-        _timer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateTime) userInfo:nil repeats:YES];
-        [[NSRunLoop currentRunLoop]addTimer:_timer forMode:NSRunLoopCommonModes];
-    }
-    return _timer;
+    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+    dispatch_source_set_timer(timer, DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC, 0 * NSEC_PER_SEC);
+    dispatch_source_set_event_handler(timer, ^{
+        self.currentTime--;
+        if (self.currentTime <= 0) {
+            [TamStatusBarAlertView dissmiss];
+        }
+    });
+    dispatch_resume(timer);
+    self.timer = timer;
 }
 
--(void)updateTime
+-(void)stopTimer
 {
-    self.currentTime--;
-    if (self.currentTime <= 0) {
-        [TamStatusBarAlertView dissmiss];
+    if (_timer) {
+        dispatch_source_cancel(_timer);
+        _timer = nil;
     }
 }
 
@@ -85,7 +90,7 @@ static TamStatusBarAlertView *_statusBaralertView;
         rect.origin.y = 0;
         _statusBaralertView.frame = rect;
     }completion:^(BOOL finished) {
-        [_statusBaralertView.timer fire];
+        [_statusBaralertView startTimer];
     }];
     
 }
@@ -97,15 +102,13 @@ static TamStatusBarAlertView *_statusBaralertView;
         rect.origin.y = -TamStatusBarHeight;
         _statusBaralertView.frame = rect;
     }completion:^(BOOL finished) {
-        [_statusBaralertView.timer invalidate];
-        _statusBaralertView.timer = nil;
+        [_statusBaralertView stopTimer];
     }];
 }
 
 -(void)dealloc
 {
-    [_statusBaralertView.timer invalidate];
-    _statusBaralertView.timer = nil;
+    [_statusBaralertView stopTimer];
 }
 
 - (instancetype)init
